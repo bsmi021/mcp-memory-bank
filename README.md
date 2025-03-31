@@ -1,6 +1,6 @@
 ﻿﻿﻿﻿# MCP Memory Bank Server 🧠
 
-A powerful, production-ready context management system for Large Language Models (LLMs). Built with ChromaDB and modern embedding technologies, it provides persistent, project-specific memory capabilities that enhance your AI's understanding and response quality.
+A powerful, context management system for Large Language Models (LLMs). Built with ChromaDB and modern embedding technologies, it provides persistent, project-specific memory capabilities that enhance your AI's understanding and response quality.
 
 ## ✨ Key Features
 
