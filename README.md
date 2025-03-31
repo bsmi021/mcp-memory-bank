@@ -1,9 +1,5 @@
 ﻿﻿﻿﻿# MCP Memory Bank Server 🧠
 
-[![Build Status](https://img.shields.io/github/workflow/status/your-org/mcp-memory-bank/CI)]()
-[![Version](https://img.shields.io/npm/v/mcp-memory-bank)]()
-[![License](https://img.shields.io/github/license/your-org/mcp-memory-bank)]()
-
 A powerful, production-ready context management system for Large Language Models (LLMs). Built with ChromaDB and modern embedding technologies, it provides persistent, project-specific memory capabilities that enhance your AI's understanding and response quality.
 
 ## ✨ Key Features
