@@ -1,0 +1,18 @@
+services:
+  chromadb:
+    image: chromadb/chroma:latest # Use the official latest image
+    ports:
+      - "8000:8000" # Map container port 8000 to host port 8000
+    volumes:
+      - chroma_data:/chroma/chroma # Persist data using a named volume
+    # Optional: Environment variables for ChromaDB configuration if needed
+    # environment:
+    #   - ALLOW_RESET=true # Example: Allows resetting the database via API (use with caution)
+    #   - CHROMA_SERVER_HOST=0.0.0.0 # Ensure it listens on all interfaces within the container
+    #   - IS_PERSISTENT=TRUE # Added based on potential ChromaDB requirements for persistence
+    #   - ANONYMIZED_TELEMETRY=FALSE # Optional: Disable telemetry
+    restart: always
+volumes:
+  chroma_data:
+    # Define the named volume for persistence
+    driver: local # Explicitly specify local driver for clarity
