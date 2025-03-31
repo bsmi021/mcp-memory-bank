@@ -1,4 +1,4 @@
-﻿﻿﻿﻿# MCP Memory Bank Server 🧠
+﻿﻿# MCP Memory Bank Server 🧠
 
 A powerful, context management system for Large Language Models (LLMs). Built with ChromaDB and modern embedding technologies, it provides persistent, project-specific memory capabilities that enhance your AI's understanding and response quality.
 
@@ -10,6 +10,45 @@ A powerful, context management system for Large Language Models (LLMs). Built wi
 - 🔄 **Real-time Updates**: Dynamic content management with automatic chunking
 - 🎯 **Precise Recall**: Advanced embedding generation via @xenova/transformers
 - 🐳 **Easy Deployment**: Docker-ready with persistent storage
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TB
+    Client[Client Application]
+    MCP[MCP Protocol Layer]
+    Tools[Tool Registration]
+    PS[Project Service]
+    ES[Embedding Service]
+    SS[Search Service]
+    DS[Database Service]
+    ChromaDB[(ChromaDB)]
+    
+    Client -->|API Calls| MCP
+    MCP -->|Register| Tools
+    Tools -->|Project Ops| PS
+    Tools -->|Search Ops| SS
+    PS -->|Store/Retrieve| DS
+    SS -->|Query| DS
+    SS -->|Generate| ES
+    DS -->|Vector Ops| ChromaDB
+    
+    subgraph Core Services
+        PS
+        ES
+        SS
+        DS
+    end
+    
+    subgraph External Dependencies
+        ChromaDB
+    end
+    
+    style Client fill:#f9f,stroke:#333,stroke-width:2px
+    style MCP fill:#bbf,stroke:#333,stroke-width:2px
+    style ChromaDB fill:#bfb,stroke:#333,stroke-width:2px
+    style Core Services fill:#fff,stroke:#333,stroke-width:2px,stroke-dasharray: 5 5
+```
 
 ## 🚀 Quick Start
 
@@ -26,6 +65,44 @@ A powerful, context management system for Large Language Models (LLMs). Built wi
 ```bash
 # Clone, install, and run in development mode
 git clone https://github.com/your-org/mcp-memory-bank.git && cd mcp-memory-bank && npm install && docker-compose up -d && npm run dev
+```
+
+## 🔄 Project Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> ProjectCreation: memoryBank_createProject
+    ProjectCreation --> Initialization: memoryBank_initializeProject
+    
+    state Initialization {
+        [*] --> CreateStandardFiles
+        CreateStandardFiles --> ProjectBrief: projectbrief.md
+        CreateStandardFiles --> ActiveContext: activeContext.md
+        CreateStandardFiles --> ProductContext: productContext.md
+        CreateStandardFiles --> SystemPatterns: systemPatterns.md
+        CreateStandardFiles --> TechContext: techContext.md
+        CreateStandardFiles --> Progress: progress.md
+    }
+    
+    Initialization --> ContentManagement
+    
+    state ContentManagement {
+        [*] --> FileOperations
+        FileOperations --> UpdateFile: memoryBank_updateFile
+        FileOperations --> GetFile: memoryBank_getFile
+        FileOperations --> ListFiles: memoryBank_listFiles
+        FileOperations --> DeleteFile: memoryBank_deleteFile
+        
+        state Search {
+            [*] --> SemanticSearch
+            [*] --> KeywordSearch
+        }
+        
+        FileOperations --> Search: memoryBank_search
+    }
+    
+    ContentManagement --> ProjectDeletion: memoryBank_deleteProject
+    ProjectDeletion --> [*]
 ```
 
 ## 📚 API Documentation
@@ -94,4 +171,4 @@ MCP_MEMBANK_EMBEDDING_MODEL=Xenova/all-MiniLM-L6-v2
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-Built with ❤️ by the MCP Team
+Built with ❤️ by the bsmi021
