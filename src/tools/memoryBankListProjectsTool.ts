@@ -24,7 +24,7 @@ export const memoryBankListProjectsTool = (
 ): void => {
 
     const processListProjectsRequest = async (args: ListProjectsArgs) => {
-        logger.debug(`Received ${TOOL_NAME_LIST_PROJECTS} request`);
+        logger.debug(`Received ${TOOL_NAME_LIST_PROJECTS} request`, { args }); // Add args context
         try {
             // No input args to validate beyond the empty schema
 
@@ -46,7 +46,7 @@ export const memoryBankListProjectsTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_LIST_PROJECTS}:`, error);
+            logger.error(`Error processing ${TOOL_NAME_LIST_PROJECTS}`, error, { args }); // Add args context
 
             // Re-throw known McpErrors
             if (error instanceof McpError) {
@@ -68,5 +68,5 @@ export const memoryBankListProjectsTool = (
         processListProjectsRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_LIST_PROJECTS}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_LIST_PROJECTS });
 };

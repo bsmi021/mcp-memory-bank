@@ -21,7 +21,7 @@ export class EmbeddingService {
         const configManager = ConfigurationManager.getInstance();
         const memConfig = configManager.getMemoryBankConfig();
         this.modelName = memConfig.embeddingModelName;
-        logger.info(`EmbeddingService configured with model: ${this.modelName}`);
+        logger.info("EmbeddingService configured", { modelName: this.modelName });
     }
 
     /**
@@ -39,14 +39,14 @@ export class EmbeddingService {
      */
     public async initialize(): Promise<void> {
         if (this.isInitialized) {
-            logger.debug("EmbeddingService already initialized.");
+            logger.debug("EmbeddingService already initialized");
             return;
         }
-        logger.info(`Initializing embedding model and tokenizer: ${this.modelName}...`);
+        logger.info("Initializing embedding model and tokenizer", { modelName: this.modelName });
         try {
             env.allowRemoteModels = true;
             // Consider adding env.cacheDir = './.cache';
-            logger.info(`Loading pipeline for model: ${this.modelName}`);
+            logger.info("Loading pipeline for model", { modelName: this.modelName });
             // Load pipeline first
             this.extractor = await pipeline('feature-extraction', this.modelName);
             if (!this.extractor) {
@@ -59,9 +59,9 @@ export class EmbeddingService {
             }
 
             this.isInitialized = true;
-            logger.info(`Embedding model '${this.modelName}' and tokenizer initialized successfully.`);
+            logger.info("Embedding model and tokenizer initialized successfully", { modelName: this.modelName });
         } catch (error) {
-            logger.error(`Failed to initialize embedding model/tokenizer '${this.modelName}':`, error);
+            logger.error("Failed to initialize embedding model/tokenizer", error, { modelName: this.modelName });
             this.isInitialized = false; // Ensure it's marked as not ready
             this.extractor = null;
             this.tokenizer = null;
@@ -77,10 +77,10 @@ export class EmbeddingService {
      */
     public async generateEmbedding(text: string): Promise<number[]> {
         if (!this.isInitialized || !this.extractor) {
-            logger.error("EmbeddingService pipeline not initialized. Call initialize() first.");
+            logger.error("EmbeddingService pipeline not initialized. Call initialize() first");
             throw new McpError(ErrorCode.InternalError, "Embedding service pipeline is not ready.");
         }
-        logger.debug(`Generating embedding for text snippet (length: ${text.length})...`);
+        logger.debug("Generating embedding for text snippet", { textLength: text.length });
         try {
             const output = await this.extractor(text, { pooling: 'mean', normalize: true });
 
@@ -95,14 +95,14 @@ export class EmbeddingService {
             }
 
             if (embedding) {
-                logger.debug(`Embedding generated successfully (dimension: ${embedding.length})`);
+                logger.debug("Embedding generated successfully", { dimension: embedding.length });
                 return embedding;
             } else {
-                logger.error("Embedding pipeline returned unexpected output structure or null data:", output);
+                logger.error("Embedding pipeline returned unexpected output structure or null data", undefined, { output });
                 throw new Error("Embedding pipeline returned unexpected output structure or null data.");
             }
         } catch (error: any) {
-            logger.error("Failed to generate embedding:", error);
+            logger.error("Failed to generate embedding", error);
             throw new McpError(ErrorCode.InternalError, `Embedding generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
@@ -153,7 +153,7 @@ export class EmbeddingService {
 
             if (splitTokens > chunkSize) {
                 // If a single split is too large, recurse with finer separators
-                logger.warn(`Split segment too large (${splitTokens} tokens > ${chunkSize}), recursing with finer separators.`);
+                logger.warn("Split segment too large, recursing with finer separators", { splitTokens, chunkSize });
                 const subChunks = await this._splitTextWithTokenizer(split, options, tokenizer, remainingSeparators);
                 finalChunks.push(...subChunks);
                 currentChunk = ""; // Reset current chunk after recursion
@@ -182,7 +182,7 @@ export class EmbeddingService {
 
                 // Handle cases where overlap + split immediately exceeds chunk size
                 if (currentChunkTokens > chunkSize) {
-                    logger.warn(`Overlap + new split segment too large (${currentChunkTokens} tokens > ${chunkSize}). Consider smaller chunk size or overlap.`);
+                    logger.warn("Overlap + new split segment too large. Consider smaller chunk size or overlap", { currentChunkTokens, chunkSize });
                     // Option 1: Just add the split itself as a chunk (might lose overlap context)
                     // finalChunks.push(splitWithSeparator); currentChunk = ""; currentChunkTokens = 0;
                     // Option 2: Recurse on the split (like above) - safer
@@ -209,10 +209,10 @@ export class EmbeddingService {
      */
     public async chunkText(content: string): Promise<string[]> {
         if (!this.isInitialized || !this.tokenizer) {
-            logger.error("EmbeddingService or its tokenizer not initialized for chunking. Call initialize() first.");
+            logger.error("EmbeddingService or its tokenizer not initialized for chunking. Call initialize() first");
             throw new McpError(ErrorCode.InternalError, "Embedding service/tokenizer is not ready for chunking.");
         }
-        logger.debug(`Chunking content (length: ${content.length})...`);
+        logger.debug("Chunking content", { contentLength: content.length });
 
         // Define chunking options based on RFC-002
         const options: TextSplitterOptions = {
@@ -222,7 +222,7 @@ export class EmbeddingService {
 
         const chunks = await this._splitTextWithTokenizer(content, options, this.tokenizer);
 
-        logger.debug(`Content split into ${chunks.length} chunks.`);
+        logger.debug("Content split into chunks", { chunkCount: chunks.length });
         return chunks;
     }
 }

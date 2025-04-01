@@ -9,7 +9,7 @@ import { logger } from "./utils/index.js";
  * @returns {McpServer} The configured MCP server instance
  */
 export function createServer(): McpServer {
-    logger.info("Creating MCP server instance...");
+    logger.info("Creating MCP server instance"); // Removed trailing ...
 
     // Initialize the server
     const server = new McpServer({
@@ -24,6 +24,6 @@ export function createServer(): McpServer {
     // Register all tools
     registerTools(server);
 
-    logger.info("MCP server instance created successfully.");
+    logger.info("MCP server instance created successfully"); // Removed trailing .
     return server;
 }

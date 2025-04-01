@@ -21,7 +21,7 @@ export const memoryBankGetProjectByNameTool = (
     projectService: ProjectService
 ): void => {
     const processGetProjectByNameRequest = async (args: GetProjectByNameArgs) => {
-        logger.debug(`Received ${TOOL_NAME_GET_PROJECT_BY_NAME} request with args:`, args);
+        logger.debug(`Received ${TOOL_NAME_GET_PROJECT_BY_NAME} request`, { args });
 
         try {
             const project = await projectService.getProjectByName(args.projectName);
@@ -45,7 +45,7 @@ export const memoryBankGetProjectByNameTool = (
                 }]
             };
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_GET_PROJECT_BY_NAME}:`, error);
+            logger.error(`Error processing ${TOOL_NAME_GET_PROJECT_BY_NAME}`, error, { args });
 
             if (error instanceof McpError) {
                 throw error;
@@ -66,5 +66,5 @@ export const memoryBankGetProjectByNameTool = (
         processGetProjectByNameRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_GET_PROJECT_BY_NAME}`);
-}; 
+    logger.info("Tool registered", { toolName: TOOL_NAME_GET_PROJECT_BY_NAME });
+};

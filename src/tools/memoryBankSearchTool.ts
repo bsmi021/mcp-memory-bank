@@ -24,7 +24,7 @@ export const memoryBankSearchTool = (
 ): void => {
 
     const processSearchRequest = async (args: SearchArgs) => {
-        logger.debug(`Received ${TOOL_NAME_SEARCH} request for project '${args.projectId}'`);
+        logger.debug(`Received ${TOOL_NAME_SEARCH} request`, { args });
         try {
             // Input validation is handled by Zod schema linked to server.tool
             // Default values for searchType and topK are also handled by Zod
@@ -47,7 +47,7 @@ export const memoryBankSearchTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_SEARCH} for project '${args.projectId}':`, error);
+            logger.error(`Error processing ${TOOL_NAME_SEARCH}`, error, { args });
 
             // Re-throw known McpErrors (like InvalidParams for not found project)
             if (error instanceof McpError) {
@@ -69,5 +69,5 @@ export const memoryBankSearchTool = (
         processSearchRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_SEARCH}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_SEARCH });
 };

@@ -24,7 +24,7 @@ export const memoryBankListFilesTool = (
 ): void => {
 
     const processListFilesRequest = async (args: ListFilesArgs) => {
-        logger.debug(`Received ${TOOL_NAME_LIST_FILES} request for project '${args.projectId}'`);
+        logger.debug(`Received ${TOOL_NAME_LIST_FILES} request`, { args });
         try {
             // Input validation is handled by Zod schema linked to server.tool
 
@@ -40,7 +40,7 @@ export const memoryBankListFilesTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_LIST_FILES} for project '${args.projectId}':`, error);
+            logger.error(`Error processing ${TOOL_NAME_LIST_FILES}`, error, { args });
 
             // Re-throw known McpErrors (like InvalidParams for not found project)
             if (error instanceof McpError) {
@@ -62,5 +62,5 @@ export const memoryBankListFilesTool = (
         processListFilesRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_LIST_FILES}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_LIST_FILES });
 };

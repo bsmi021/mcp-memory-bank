@@ -24,7 +24,7 @@ export const memoryBankDeleteProjectTool = (
 ): void => {
 
     const processDeleteProjectRequest = async (args: DeleteProjectArgs) => {
-        logger.debug(`Received ${TOOL_NAME_DELETE_PROJECT} request with args:`, args);
+        logger.debug(`Received ${TOOL_NAME_DELETE_PROJECT} request`, { args });
         try {
             // Input validation is handled by Zod schema linked to server.tool
 
@@ -41,7 +41,7 @@ export const memoryBankDeleteProjectTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_DELETE_PROJECT}:`, error);
+            logger.error(`Error processing ${TOOL_NAME_DELETE_PROJECT}`, error, { args });
 
             // Re-throw known McpErrors (like InvalidParams for not found)
             if (error instanceof McpError) {
@@ -63,5 +63,5 @@ export const memoryBankDeleteProjectTool = (
         processDeleteProjectRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_DELETE_PROJECT}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_DELETE_PROJECT });
 };

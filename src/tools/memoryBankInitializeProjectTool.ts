@@ -90,17 +90,17 @@ export const memoryBankInitializeProjectTool = (
      * to create each file with its descriptive placeholder content.
      */
     const processInitializeProjectRequest = async (args: InitializeProjectParams) => {
-        logger.debug(`Received ${TOOL_NAME_INITIALIZE_PROJECT} request for project '${args.projectId}'`);
+        logger.debug(`Received ${TOOL_NAME_INITIALIZE_PROJECT} request`, { args });
         try {
             // Input validation is handled by Zod schema linked to server.tool
 
             // Loop through standard files and create them
             for (const fileName of STANDARD_FILENAMES) {
                 const content = STANDARD_FILES[fileName];
-                logger.debug(`Initializing file '${fileName}' for project '${args.projectId}'...`);
+                logger.debug("Initializing standard file for project", { fileName, projectId: args.projectId });
                 // Use the same service method as the updateFile tool
                 await memoryBankService.updateFileContent(args.projectId, fileName, content);
-                logger.debug(`File '${fileName}' initialized successfully.`);
+                logger.debug("Standard file initialized successfully", { fileName, projectId: args.projectId });
             }
 
             // Format the successful output for MCP
@@ -112,7 +112,7 @@ export const memoryBankInitializeProjectTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_INITIALIZE_PROJECT} for project '${args.projectId}':`, error);
+            logger.error(`Error processing ${TOOL_NAME_INITIALIZE_PROJECT}`, error, { args });
 
             // Re-throw known McpErrors (like InvalidParams if project doesn't exist, handled by updateFileContent)
             if (error instanceof McpError) {
@@ -134,5 +134,5 @@ export const memoryBankInitializeProjectTool = (
         processInitializeProjectRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_INITIALIZE_PROJECT}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_INITIALIZE_PROJECT });
 };

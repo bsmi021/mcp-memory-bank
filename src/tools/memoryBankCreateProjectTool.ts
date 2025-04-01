@@ -24,7 +24,7 @@ export const memoryBankCreateProjectTool = (
 ): void => {
 
     const processCreateProjectRequest = async (args: CreateProjectArgs) => {
-        logger.debug(`Received ${TOOL_NAME_CREATE_PROJECT} request with args:`, args);
+        logger.debug(`Received ${TOOL_NAME_CREATE_PROJECT} request`, { args });
         try {
             // Input validation is handled by Zod schema linked to server.tool
 
@@ -40,7 +40,7 @@ export const memoryBankCreateProjectTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_CREATE_PROJECT}:`, error);
+            logger.error(`Error processing ${TOOL_NAME_CREATE_PROJECT}`, error, { args });
 
             // Map known errors (like ResourceConflict from service) or re-throw McpErrors
             if (error instanceof McpError) {
@@ -63,5 +63,5 @@ export const memoryBankCreateProjectTool = (
         processCreateProjectRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_CREATE_PROJECT}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_CREATE_PROJECT });
 };

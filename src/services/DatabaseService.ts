@@ -24,7 +24,7 @@ export class DatabaseService {
         const configManager = ConfigurationManager.getInstance();
         const memConfig = configManager.getMemoryBankConfig();
         this.chromaUrl = memConfig.chromaDbUrl;
-        logger.info(`DatabaseService configured with ChromaDB URL: ${this.chromaUrl}`);
+        logger.info("DatabaseService configured", { chromaUrl: this.chromaUrl });
     }
 
     public static getInstance(): DatabaseService {
@@ -36,27 +36,27 @@ export class DatabaseService {
 
     public async initialize(): Promise<void> {
         if (this.isInitialized) return;
-        logger.info(`Initializing DatabaseService connection to ChromaDB at: ${this.chromaUrl}...`);
+        logger.info("Initializing DatabaseService connection to ChromaDB", { chromaUrl: this.chromaUrl });
         try {
             this.client = new ChromaClient({ path: this.chromaUrl });
             // Ping the server to ensure connectivity before proceeding
             await this.client.heartbeat();
-            logger.info("ChromaDB connection successful (heartbeat received).");
+            logger.info("ChromaDB connection successful (heartbeat received)");
 
             // Get or create collections
             // For projects, we don't need a specific embedding function as we don't store vectors
             this.projectsCollection = await this.client.getOrCreateCollection({ name: PROJECTS_COLLECTION_NAME });
-            logger.info(`Ensured ChromaDB collection exists: ${PROJECTS_COLLECTION_NAME}`);
+            logger.info("Ensured ChromaDB collection exists", { collectionName: PROJECTS_COLLECTION_NAME });
 
             // For chunks, ChromaDB defaults usually work, but embedding function can be specified if needed
             // We'll rely on adding embeddings directly during insertion for now.
             this.chunksCollection = await this.client.getOrCreateCollection({ name: CHUNKS_COLLECTION_NAME });
-            logger.info(`Ensured ChromaDB collection exists: ${CHUNKS_COLLECTION_NAME}`);
+            logger.info("Ensured ChromaDB collection exists", { collectionName: CHUNKS_COLLECTION_NAME });
 
             this.isInitialized = true;
-            logger.info("DatabaseService initialized successfully with ChromaDB.");
+            logger.info("DatabaseService initialized successfully with ChromaDB");
         } catch (error: any) {
-            logger.error(`Failed to initialize ChromaDB: ${error.message}`, error);
+            logger.error("Failed to initialize ChromaDB", error, { chromaUrl: this.chromaUrl });
             this.isInitialized = false; this.client = null; this.projectsCollection = null; this.chunksCollection = null;
             // Provide a more specific error message if possible
             const errorMsg = error.message?.includes('fetch') ? `Failed to connect to ChromaDB at ${this.chromaUrl}. Is it running?` : error.message;
@@ -69,7 +69,7 @@ export class DatabaseService {
             // Attempt re-initialization once if not initialized
             // Note: This is a simple recovery attempt. More robust logic might be needed.
             if (!this.isInitialized) {
-                logger.warn("Database service was not initialized. Attempting initialization now...");
+                logger.warn("Database service was not initialized. Attempting initialization now");
                 // Make initialize public or add an internal re-init method if needed
                 // For now, throw error to indicate the issue clearly.
                 // await this.initialize(); // Avoid async call in sync method if possible
@@ -104,7 +104,7 @@ export class DatabaseService {
                     lastModifiedAt: new Date(meta.last_modified_at as string)
                 };
             } return null;
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error finding project by name: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error finding project by name", e, { projectName }); throw new McpError(ErrorCode.InternalError, `DB error finding project by name: ${e.message}`); }
     }
 
     public async findProjectById(projectId: string): Promise<Project | null> {
@@ -125,7 +125,7 @@ export class DatabaseService {
                     lastModifiedAt: new Date(meta.last_modified_at as string)
                 };
             } return null;
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error finding project by ID: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error finding project by ID", e, { projectId }); throw new McpError(ErrorCode.InternalError, `DB error finding project by ID: ${e.message}`); }
     }
 
     public async insertProject(projectId: string, projectName: string): Promise<Project> {
@@ -155,15 +155,16 @@ export class DatabaseService {
                 createdAt: new Date(now),
                 lastModifiedAt: new Date(now)
             };
-        } catch (e: any) { if (e instanceof McpError) throw e; throw new McpError(ErrorCode.InternalError, `DB error inserting project: ${e.message}`); }
+        } catch (e: any) { if (e instanceof McpError) throw e; logger.error("DB error inserting project", e, { projectId, projectName }); throw new McpError(ErrorCode.InternalError, `DB error inserting project: ${e.message}`); }
     }
 
     public async deleteProjectRecord(projectId: string): Promise<boolean> {
         this.ensureInitialized();
         try {
             await this.projectsCollection!.delete({ ids: [projectId] });
+            logger.info("Deleted project record", { projectId });
             return true;
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error deleting project record: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error deleting project record", e, { projectId }); throw new McpError(ErrorCode.InternalError, `DB error deleting project record: ${e.message}`); }
     }
 
     public async getAllProjects(): Promise<Project[]> {
@@ -181,7 +182,7 @@ export class DatabaseService {
                     lastModifiedAt: new Date(meta.last_modified_at as string)
                 };
             }).filter((p): p is Project => p !== null); // Filter out any nulls
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error getting all projects: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error getting all projects", e); throw new McpError(ErrorCode.InternalError, `DB error getting all projects: ${e.message}`); }
     }
 
     public async updateProjectLastModified(projectId: string): Promise<void> {
@@ -202,9 +203,9 @@ export class DatabaseService {
                     metadatas: [updatedMetadata],
                 });
             } else {
-                logger.warn(`Project ${projectId} not found for updateLastModified.`);
+                logger.warn("Project not found for updateLastModified", { projectId });
             }
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error updating project timestamp: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error updating project timestamp", e, { projectId }); throw new McpError(ErrorCode.InternalError, `DB error updating project timestamp: ${e.message}`); }
     }
 
     // --- Chunk/Embedding Methods ---
@@ -212,22 +213,23 @@ export class DatabaseService {
         this.ensureInitialized();
         try {
             await this.chunksCollection!.delete({ where: { project_id: projectId } as Where });
+            logger.info("Deleted all chunks for project", { projectId });
             return true;
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error deleting project chunks: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error deleting project chunks", e, { projectId }); throw new McpError(ErrorCode.InternalError, `DB error deleting project chunks: ${e.message}`); }
     }
 
     public async deleteMemoryBankContentByFile(projectId: string, fileName: string): Promise<boolean> {
         this.ensureInitialized();
         try {
             // Step 1: Get all chunks for the project
-            logger.debug(`Getting all chunk IDs for project ${projectId} to filter for file ${fileName}`);
+            logger.debug("Getting all chunk IDs for project to filter for file", { projectId, fileName });
             const results = await this.chunksCollection!.get({
                 where: { "project_id": projectId } as Where, // Filter only by project ID
                 include: [IncludeEnum.Metadatas] // Need metadata to filter by filename
             });
 
             if (!results || results.ids.length === 0) {
-                logger.debug(`No chunks found for project ${projectId}, nothing to delete for file ${fileName}.`);
+                logger.debug("No chunks found for project, nothing to delete for file", { projectId, fileName });
                 return true;
             }
 
@@ -239,17 +241,17 @@ export class DatabaseService {
 
 
             if (idsToDelete.length === 0) {
-                logger.debug(`No chunks found to delete for project ${projectId}, file ${fileName}.`);
+                logger.debug("No chunks found to delete for project file", { projectId, fileName });
                 return true; // Nothing to delete, operation is successful (idempotent)
             }
 
             // Step 2: Delete the chunks using their specific IDs
-            logger.debug(`Deleting ${idsToDelete.length} chunk(s) by ID for project ${projectId}, file ${fileName}`);
+            logger.debug("Deleting chunk(s) by ID for project file", { count: idsToDelete.length, projectId, fileName });
             await this.chunksCollection!.delete({ ids: idsToDelete });
-            logger.debug(`Successfully deleted chunks by ID.`);
+            logger.debug("Successfully deleted chunks by ID", { count: idsToDelete.length, projectId, fileName });
             return true;
         } catch (e: any) {
-            logger.error(`Error deleting file chunks for project ${projectId}, file ${fileName}: ${e.message}`, e);
+            logger.error("Error deleting file chunks", e, { projectId, fileName });
             throw new McpError(ErrorCode.InternalError, `DB error deleting file chunks: ${e.message}`);
         }
     }
@@ -283,12 +285,12 @@ export class DatabaseService {
                 createdAt: new Date(now),
                 updatedAt: new Date(now)
             };
-        } catch (e: any) { throw new McpError(ErrorCode.InternalError, `DB error inserting chunk: ${e.message}`); }
+        } catch (e: any) { logger.error("DB error inserting chunk", e, { projectId, fileName, chunkIndex }); throw new McpError(ErrorCode.InternalError, `DB error inserting chunk: ${e.message}`); }
     }
 
     public async getMemoryBankChunksByFile(projectId: string, fileName: string): Promise<MemoryBankChunk[]> {
         this.ensureInitialized();
-        logger.debug(`Getting chunks for file: ${fileName} in project: ${projectId}`);
+        logger.debug("Getting chunks for file in project", { fileName, projectId });
         try {
             // Use the $and structure for the where clause, similar to delete
             const whereFilter = {
@@ -303,7 +305,7 @@ export class DatabaseService {
             });
 
             if (!results || results.ids.length === 0) {
-                logger.warn(`No chunks found for file '${fileName}' in project '${projectId}'`);
+                logger.warn("No chunks found for file in project", { fileName, projectId });
                 return [];
             }
 
@@ -327,14 +329,14 @@ export class DatabaseService {
             chunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
             return chunks;
         } catch (error: any) {
-            logger.error(`Error getting chunks for file '${fileName}' in project '${projectId}': ${error.message}`, error);
+            logger.error("Error getting chunks for file in project", error, { fileName, projectId });
             throw new McpError(ErrorCode.InternalError, `Database error getting file chunks.`);
         }
     }
 
     public async getDistinctFileNamesByProject(projectId: string): Promise<string[]> {
         this.ensureInitialized();
-        logger.debug(`Getting distinct file names for project: ${projectId}`);
+        logger.debug("Getting distinct file names for project", { projectId });
         try {
             // Fetch all metadata for the project - might be inefficient for huge projects
             const results = await this.chunksCollection!.get({
@@ -350,7 +352,7 @@ export class DatabaseService {
             });
             return Array.from(fileNames);
         } catch (error: any) {
-            logger.error(`Error getting distinct file names for project '${projectId}': ${error.message}`, error);
+            logger.error("Error getting distinct file names for project", error, { projectId });
             throw new McpError(ErrorCode.InternalError, `Database error getting distinct file names.`);
         }
     }
@@ -398,13 +400,14 @@ export class DatabaseService {
             }).filter((r) => r !== null); // Simpler filter, TS should infer non-null type
 
         } catch (e: any) {
+            logger.error("DB error during semantic search", e, { projectId, topK, fileFilter });
             throw new McpError(ErrorCode.InternalError, `DB error during semantic search: ${e.message}`);
         }
     }
 
     public async keywordSearchChunks(projectId: string, query: string, topK: number, fileFilter?: string[]): Promise<DatabaseSearchResult[]> {
         this.ensureInitialized();
-        logger.warn("Keyword search in DatabaseService is performing application-level filtering. This may be inefficient for large datasets.");
+        logger.warn("Keyword search performing application-level filtering", { projectId, topK, fileFilter });
         try {
             const whereClause: ChromaWhere = { project_id: projectId };
             if (fileFilter && fileFilter.length > 0) {
@@ -451,6 +454,7 @@ export class DatabaseService {
             return matchedResults.slice(0, topK) as DatabaseSearchResult[];
 
         } catch (e: any) {
+            logger.error("DB error during keyword search", e, { projectId, query, topK, fileFilter });
             throw new McpError(ErrorCode.InternalError, `DB error during keyword search: ${e.message}`);
         }
     }

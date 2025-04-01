@@ -24,7 +24,7 @@ export const memoryBankGetFileTool = (
 ): void => {
 
     const processGetFileRequest = async (args: GetFileArgs) => {
-        logger.debug(`Received ${TOOL_NAME_GET_FILE} request for file '${args.fileName}' in project '${args.projectId}'`);
+        logger.debug(`Received ${TOOL_NAME_GET_FILE} request`, { args });
         try {
             // Input validation is handled by Zod schema linked to server.tool
 
@@ -40,7 +40,7 @@ export const memoryBankGetFileTool = (
             };
 
         } catch (error) {
-            logger.error(`Error processing ${TOOL_NAME_GET_FILE} for file '${args.fileName}':`, error);
+            logger.error(`Error processing ${TOOL_NAME_GET_FILE}`, error, { args });
 
             // Re-throw known McpErrors (like InvalidParams for not found project/file)
             if (error instanceof McpError) {
@@ -62,5 +62,5 @@ export const memoryBankGetFileTool = (
         processGetFileRequest
     );
 
-    logger.info(`Tool registered: ${TOOL_NAME_GET_FILE}`);
+    logger.info("Tool registered", { toolName: TOOL_NAME_GET_FILE });
 };

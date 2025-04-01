@@ -28,7 +28,7 @@ import { memoryBankInitializeProjectTool } from "./memoryBankInitializeProjectTo
  * This function centralizes tool registration logic.
  */
 export function registerTools(server: McpServer): void {
-    logger.info("Registering tools...");
+    logger.info("Registering tools"); // Removed trailing ...
     const configManager = ConfigurationManager.getInstance();
 
     // Instantiate services needed by tools
@@ -56,5 +56,5 @@ export function registerTools(server: McpServer): void {
 
     // yourTool(server, configManager.getYourServiceConfig()); // Add new tool registrations
 
-    logger.info("All tools registered.");
+    logger.info("All tools registered"); // Removed trailing .
 }

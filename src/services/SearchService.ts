@@ -25,7 +25,7 @@ export class SearchService {
         this.projectService = projectService;
         this.dbService = dbService; // Assign injected service
         this.embeddingService = embeddingService; // Assign injected service
-        logger.info("SearchService initialized");
+        logger.info("SearchService initialized"); // Already good
     }
 
     /**
@@ -45,7 +45,7 @@ export class SearchService {
         topK: number,
         fileFilter?: string[]
     ): Promise<SearchResult[]> {
-        logger.debug(`Performing ${searchType} search in project '${projectId}' for query: "${query}" (topK: ${topK}, filter: ${fileFilter})`);
+        logger.debug("Performing search", { searchType, projectId, query, topK, fileFilter });
 
         // 1. Validate project exists
         if (!await this.projectService.projectExists(projectId)) {
@@ -64,11 +64,11 @@ export class SearchService {
             if (searchType === 'semantic') {
                 const queryEmbedding = await this.embeddingService.generateEmbedding(query);
                 chunks = await this.dbService.semanticSearchChunks(projectId, queryEmbedding, topK, fileFilter);
-                logger.debug(`Semantic search returned ${chunks.length} chunks.`);
+                logger.debug("Semantic search returned chunks", { count: chunks.length, projectId, topK, fileFilter });
 
             } else if (searchType === 'keyword') {
                 chunks = await this.dbService.keywordSearchChunks(projectId, query, topK, fileFilter);
-                logger.debug(`Keyword search returned ${chunks.length} chunks.`);
+                logger.debug("Keyword search returned chunks", { count: chunks.length, projectId, topK, fileFilter });
 
             } else {
                 // Should be caught by Zod enum validation in tool layer, but handle defensively
@@ -89,11 +89,11 @@ export class SearchService {
             }
             // Keyword results are already sorted by DB/logic in keywordSearchChunks (filename, chunkIndex)
 
-            logger.info(`Search completed. Returning ${results.length} results.`);
+            logger.info("Search completed", { resultCount: results.length, projectId, searchType });
             return results;
 
         } catch (error) {
-            logger.error(`Error during search in project '${projectId}':`, error);
+            logger.error("Error during search", error, { projectId, searchType, query, topK, fileFilter });
             if (error instanceof McpError) throw error;
             throw new McpError(ErrorCode.InternalError, `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
