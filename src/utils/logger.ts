@@ -1,42 +1,42 @@
-﻿import chalk from 'chalk'; // Using chalk for colored output
+﻿// Configurable logging utility
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-// Simple console logger with levels and colors
+const LOG_LEVELS: Record<LogLevel, number> = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3,
+};
 
-// Define log levels (optional, for potential filtering later)
-enum LogLevel {
-    DEBUG,
-    INFO,
-    WARN,
-    ERROR
-}
+// Default to 'info' if LOG_LEVEL is not set or invalid
+const configuredLevelName = (process.env.LOG_LEVEL?.toLowerCase() ?? 'info') as LogLevel;
+const configuredLevel = LOG_LEVELS[configuredLevelName] ?? LOG_LEVELS.info;
 
-// Basic configuration (could be enhanced)
-const currentLogLevel = LogLevel.DEBUG; // Show all logs by default
+const shouldLog = (level: LogLevel): boolean => {
+    return LOG_LEVELS[level] >= configuredLevel;
+};
 
 export const logger = {
-    debug: (message: string, ...args: unknown[]) => {
-        if (currentLogLevel <= LogLevel.DEBUG) {
-            console.error(chalk.gray(`[DEBUG] ${message}`), ...args); // Include message
+    debug: (message: string, ...args: any[]) => {
+        if (shouldLog('debug')) {
+            console.error(`[DEBUG] ${message}`, ...args);
         }
     },
-    info: (message: string, ...args: unknown[]) => {
-        if (currentLogLevel <= LogLevel.INFO) {
-            console.error(chalk.blue(`[INFO] ${message}`), ...args); // Include message
+    info: (message: string, ...args: any[]) => {
+        if (shouldLog('info')) {
+            console.error(`[INFO] ${message}`, ...args);
         }
     },
-    warn: (message: string, ...args: unknown[]) => {
-        if (currentLogLevel <= LogLevel.WARN) {
-            console.error(chalk.yellow(`[WARN] ${message}`), ...args); // Include message
+    warn: (message: string, ...args: any[]) => {
+        // Warnings should probably always be shown, but let's respect the level for now
+        if (shouldLog('warn')) {
+            console.error(`[WARN] ${message}`, ...args);
         }
     },
-    error: (message: string, ...args: unknown[]) => {
-        if (currentLogLevel <= LogLevel.ERROR) {
-            // Log error message and stack trace if available
-            console.error(chalk.red(`[ERROR] ${message}`), ...args); // Include message
-            const errorArg = args.find(arg => arg instanceof Error);
-            if (errorArg instanceof Error && errorArg.stack) {
-                console.error(chalk.red(errorArg.stack));
-            }
+    error: (message: string, ...args: any[]) => {
+        // Errors should definitely always be shown
+        if (shouldLog('error')) { // This will always be true if configuredLevel <= error
+            console.error(`[ERROR] ${message}`, ...args);
         }
     }
 };
