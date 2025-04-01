@@ -1,4 +1,4 @@
-﻿﻿# MCP Memory Bank Server 🧠
+﻿﻿﻿﻿# MCP Memory Bank Server 🧠
 
 A powerful, context management system for Large Language Models (LLMs). Built with ChromaDB and modern embedding technologies, it provides persistent, project-specific memory capabilities that enhance your AI's understanding and response quality.
 
@@ -132,6 +132,9 @@ stateDiagram-v2
 ```env
 CHROMADB_URL=http://localhost:8000
 MCP_MEMBANK_EMBEDDING_MODEL=Xenova/all-MiniLM-L6-v2
+# Optional: Controls the logging verbosity. Defaults to 'info'.
+# Possible values: 'debug', 'info', 'warn', 'error'
+LOG_LEVEL=info
 ```
 
 ## 🐛 Troubleshooting
