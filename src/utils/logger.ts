@@ -10,6 +10,28 @@ enum LogLevel {
     ERROR = 'ERROR',
 }
 
+// Map log levels to numerical values for comparison
+const LogLevelSeverity: { [key in LogLevel]: number } = {
+    [LogLevel.DEBUG]: 0,
+    [LogLevel.INFO]: 1,
+    [LogLevel.WARN]: 2,
+    [LogLevel.ERROR]: 3,
+};
+
+// Function to get the effective log level from environment variable
+function getEffectiveLogLevel(): number {
+    const envLevel = process.env.LOG_LEVEL?.toUpperCase();
+    switch (envLevel) {
+        case LogLevel.DEBUG: return LogLevelSeverity[LogLevel.DEBUG];
+        case LogLevel.INFO: return LogLevelSeverity[LogLevel.INFO];
+        case LogLevel.WARN: return LogLevelSeverity[LogLevel.WARN];
+        case LogLevel.ERROR: return LogLevelSeverity[LogLevel.ERROR];
+        default: return LogLevelSeverity[LogLevel.ERROR]; // Default to ERROR
+    }
+}
+
+const effectiveLogLevel = getEffectiveLogLevel();
+
 // Interface for the structured log entry
 interface LogEntry {
     timestamp: string;
@@ -64,18 +86,24 @@ function writeLog(level: LogLevel, message: string, context?: Record<string, any
 // Logger object with methods for different levels
 export const logger = {
     debug: (message: string, context?: Record<string, any>): void => {
-        // Optional: Add check for LOG_LEVEL env var here
-        // if (process.env.LOG_LEVEL?.toUpperCase() === 'DEBUG') { ... }
-        writeLog(LogLevel.DEBUG, message, context);
+        if (effectiveLogLevel <= LogLevelSeverity[LogLevel.DEBUG]) {
+            writeLog(LogLevel.DEBUG, message, context);
+        }
     },
     info: (message: string, context?: Record<string, any>): void => {
-        writeLog(LogLevel.INFO, message, context);
+        if (effectiveLogLevel <= LogLevelSeverity[LogLevel.INFO]) {
+            writeLog(LogLevel.INFO, message, context);
+        }
     },
     warn: (message: string, context?: Record<string, any>): void => {
-        writeLog(LogLevel.WARN, message, context);
+        if (effectiveLogLevel <= LogLevelSeverity[LogLevel.WARN]) {
+            writeLog(LogLevel.WARN, message, context);
+        }
     },
     error: (message: string, error?: unknown, context?: Record<string, any>): void => {
-        // Pass error object to writeLog for structured error logging
-        writeLog(LogLevel.ERROR, message, context, error);
+        // Error logs are always shown if the level is ERROR or lower (which includes the default)
+        if (effectiveLogLevel <= LogLevelSeverity[LogLevel.ERROR]) {
+            writeLog(LogLevel.ERROR, message, context, error);
+        }
     },
 };
